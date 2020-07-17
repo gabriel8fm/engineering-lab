@@ -1,0 +1,33 @@
+# vim: sts=2 ts=2 sw=2 et ai
+#
+mysql:
+  serverpkg: mysql-server
+  clientpkg: mysql-client
+  service: mysql
+  pythonpkg: python-mysqldb
+  devpkg: mysql-devel
+  debconf_utils: debconf-utils
+
+  config:
+    file: /etc/mysql/my.cnf
+    sections:
+      client:
+        port: 3306
+        socket: /var/run/mysqld/mysqld.sock
+      mysqld_: {}
+      mysqld:
+        user: mysql
+        socket: /var/run/mysqld/mysqld.sock
+        port: 3306
+        datadir: /var/lib/mysql
+
+  #The following dict names are reserved for pillar data (see pillar.example)
+  global: {}
+  clients: {}
+  library: {}
+  server: {}
+  salt_user: {}
+  database: {}
+  schema: {}
+  user: {}
+  dev: {}

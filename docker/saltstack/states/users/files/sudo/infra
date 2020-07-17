@@ -1,0 +1,8 @@
+{%- from "users/map.jinja" import users with context -%}
+{%- set user_alias = 'INFRA' -%}
+
+User_Alias     {{ user_alias }} = \
+{% for username, attributes in users.items() if attributes.absent is not defined -%}
+                            {{ username }}{% if not loop.last %}, \{% endif %}
+{% endfor %}
+{{ user_alias }} ALL=(ALL) NOPASSWD: /bin/su

@@ -1,0 +1,17 @@
+{%- from "users/map.jinja" import dev_users with context -%}
+{%- from "users/map.jinja" import sudo with context -%}
+# File managed by salt - DO NOT EDIT BY HAND!!!
+
+User_Alias     DEVS = \
+{% for user in dev_users -%}
+                            {{ user }}{% if not loop.last %}, \{% endif %}
+{% endfor %}
+Cmnd_Alias     ALLOWED = \
+{% for cmd in sudo.allowed -%}
+                          {{ cmd }}{% if not loop.last %}, \{% endif %}
+{% endfor %}
+Cmnd_Alias     RESTRICTED = \
+{% for cmd in sudo.restricted -%}
+                            {{ cmd }}{% if not loop.last %}, \{% endif %}
+{% endfor %}
+DEVS ALL=(ALL) NOPASSWD: ALLOWED, !RESTRICTED

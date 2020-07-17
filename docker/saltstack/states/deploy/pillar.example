@@ -1,0 +1,14 @@
+app: 
+  dir: /var/www/html/appdir
+  user: www-data
+  repo: git@github.com:repo/app-repo.git
+
+# deploy:
+#   max_releases: 2 # Number of releases to keep available in the server
+#   shared_system_files: [] # Files to copy from shared/system 
+#   shared_system_files_symlink: [] # Files to symlink from shared/system (useful for big files)
+#   # Post tasks commands
+#   post_update_commands: []
+#   post_publish_commands: []
+#   post_finish_commands: []
+#   service_to_reload: null # Service to reload if any

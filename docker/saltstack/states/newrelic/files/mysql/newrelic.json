@@ -1,0 +1,6 @@
+{% from "newrelic/map.jinja" import newrelic with context %}
+
+{
+  "license_key": "{{ newrelic.license }}",
+  "log_level": "info"
+}

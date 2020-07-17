@@ -1,0 +1,49 @@
+{%- from "memcached/map.jinja" import memcached with context -%}
+
+# memcached default config file
+# 2003 - Jay Bonci <jaybonci@debian.org>
+# This configuration file is read by the start-memcached script provided as
+# part of the Debian GNU/Linux distribution.
+
+# Run memcached as a daemon. This command is implied, and is not needed for the
+# daemon to run. See the README.Debian that comes with this package for more
+# information.
+{{ '-d' if memcached.daemonize == True else '# -d' }}
+
+# Log memcached's output to /var/log/memcached
+logfile /var/log/memcached.log
+
+# Be verbose
+{{ '-v' if memcached.verbose_level == '1' else '# -v' }}
+
+# Be even more verbose (print client commands as well)
+{{ '-vv' if memcached.verbose_level == '2' else '# -vv' }}
+
+# Start with a cap of 64 megs of memory. It's reasonable, and the daemon default
+# Note that the daemon will grow to this size, but does not start out holding this much
+# memory
+-m {{ memcached.memory_cap }}
+
+# Default connection port is 11211
+-p {{ memcached.port }}
+
+# Run the daemon as root. The start-memcached will default to running as root if no
+# -u command is present in this config file
+-u {{ memcached.user }}
+
+# Specify which IP address to listen on. The default is to listen on all IP addresses
+# This parameter is one of the only security measures that memcached has, so make sure
+# it's listening on a firewalled interface.
+-l {{ memcached.listen_address }}
+
+# Limit the number of simultaneous incoming connections. The daemon default is 1024
+-c {{ memcached.max_connections }}
+
+# Lock down all paged memory. Consult with the README and homepage before you do this
+{{ '-k' if memcached.lock_paged_memory == True  else '# -k' }}
+
+# Return error when memory is exhausted (rather than removing items)
+{{ '-M' if memcached.error_on_mem_full == True  else '# -M' }}
+
+# Maximize core file limit
+{{ '-r' if memcached.max_core_file_limit == True  else '# -r' }}

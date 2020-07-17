@@ -1,0 +1,9 @@
+{
+  "agents": [
+    {
+      "name"    : "{{ salt['grains.get']('host') }}",
+      "host"    : "localhost",
+      "metrics" : "status,newrelic,slave,master",
+    }
+  ]
+}

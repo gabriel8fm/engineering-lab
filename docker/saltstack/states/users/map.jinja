@@ -1,0 +1,48 @@
+{% set users = salt['pillar.get']('users', []) %}
+{% set dev_users = salt['pillar.get']('app:users', []) %}
+{% set users_settings = {
+  'absent_force': True,
+  'absent_purge': False
+} %}
+
+{% set sudo = {
+  'restricted': [
+    '/usr/sbin/vipw',
+    '/usr/sbin/adduser',
+    '/etc/sudoers',
+    '/usr/sbin/visudo',
+    '/bin/sh',
+    '/bin/ksh',
+    '/bin/bash',
+    '/bin/zsh',
+    '/bin/csh',
+    '/bin/tcsh',
+    '/usr/bin/login',
+    '/bin/chown',
+    '/bin/chmod',
+    '/bin/mkdir',
+    '/bin/mv',
+    '/bin/rm',
+  ],
+  'allowed': [
+    '/sbin/service', 
+    '/bin/systemctl',
+    '/bin/vi',
+    '/usr/bin/vim',
+    '/etc/init.d/memcached', 
+    '/etc/init.d/*',  
+    '/usr/local/bin/whenever',
+    '/usr/bin/crontab',
+    'sudoedit /etc/crontab',
+    '/usr/local/bin/ruby',
+    '/sbin/stop',
+    '/sbin/start',
+    '/etc/init.d/supervisor',
+    '/usr/bin/supervisorctl',
+    '/etc/init.d/nginx',
+    '/usr/sbin/nginx',
+    '/etc/init.d/redis-server',
+    '/var/log/httpd',
+    '/var/log/nginx',
+  ]
+} %}

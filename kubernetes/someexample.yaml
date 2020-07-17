@@ -1,0 +1,22 @@
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: podexample
+  namespace: poc
+spec:
+  containers:
+  - image: alpine
+    imagePullPolicy: IfNotPresent
+    name: myvolumes-container
+
+    command: ['sh', '-c', 'echo Container 1 is Running ; sleep 3600']
+
+    volumeMounts:
+      - mountPath: "/DBX"
+        name: volumeclaim
+
+  volumes:
+    - name: volumeclaim
+      persistentVolumeClaim:
+       claimName: volumeclaim

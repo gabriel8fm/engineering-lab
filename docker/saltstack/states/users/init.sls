@@ -1,0 +1,4 @@
+include:
+  - .present
+  - .absent
+  - .sudo

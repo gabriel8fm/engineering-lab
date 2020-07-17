@@ -1,0 +1,13 @@
+User_Alias     DEPLOYS = deploy
+
+Cmnd_Alias     DEPLOY = /etc/init.d/nginx, /bin/chown, /usr/local/bin/ruby, /bin/chmod,  /sbin/service, /bin/rm, /bin/mkdir, /usr/local/bin/bundle, /sbin/stop, /sbin/start, /bin/systemctl
+
+Defaults !visiblepw
+
+DEPLOYS ALL=(ALL) NOPASSWD: DEPLOY
+
+ansible ALL=NOPASSWD: ALL
+
+# START salt managed zone - DO NOT EDIT #
+#includedir /etc/sudoers.d
+# END salt managed zoned #

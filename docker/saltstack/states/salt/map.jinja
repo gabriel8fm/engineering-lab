@@ -1,0 +1,73 @@
+{% set osrelease = salt['grains.get']('osrelease') %}
+{% set salt_pillar = salt['grains.filter_by']({
+  'default': {
+    'master_address': '192.168.5.60',
+    'pkg': 'salt-minion',
+    'pyinotify': 'python-pyinotify',
+    'minion': {
+      'mysql_socket': '/tmp/mysql.sock',
+      'config': {
+        'master': '192.168.5.60',
+      } 
+    }
+  },  
+  'CentOS': {
+    'minion': {
+      'mysql_socket': '/var/lib/mysql/mysql.sock',
+    },
+  },
+  'Ubuntu': {
+    'repo': 'deb http://repo.saltstack.com/apt/' +
+      salt['grains.get']('os')|lower + '/' + osrelease + '/amd64/latest ' + salt['grains.get']('oscodename') + ' main',
+    'minion': {
+      'mysql_socket': '/var/lib/mysql/mysql.sock',
+    }
+  }  
+}, grain="os", merge=salt['grains.filter_by'](
+  { 
+    '6': {
+      'repo': 'https://repo.saltstack.com/yum/redhat/$releasever/$basearch/latest'
+    },
+    '7': {
+      'repo': 'https://repo.saltstack.com/yum/redhat/$releasever/$basearch/latest'
+    },
+  }, grain="osmajorrelease")
+, base='default') %}
+
+{# Populate mysql administration config in case it is a mysql server #}
+{% if salt['pillar.get']('salt:mysql') %}
+  {% do salt_pillar.minion.config.update({
+    'mysql.user': salt['pillar.get']('salt:mysql:user'),
+    'mysql.pass': salt['pillar.get']('salt:mysql:pass'),
+    'mysql.unix_socket': salt_pillar.minion.mysql_socket
+    }) %}
+{% endif %}
+
+{# Macro to salt config file template #}
+{% set indent_increment = 2 %}
+
+{%- macro salt_block(value, key=None, operator=': ', delim='', ind=0) -%}
+    {%- if value != None -%}
+    {%- if value is number or value is string -%}
+        {{ key|indent(ind, True) }}{{ operator }}{{ value }}{{ delim }}
+    {%- elif value is mapping -%}
+        {{ key|indent(ind, True) }}{{ operator }}{{ '{' }}
+        {%- for k, v in value.items() %}
+        {%- if k != 'include' %}
+{{ nginx_block(v, k, operator, delim, (ind + indent_increment)) }}
+        {%- endif %}
+        {%- endfor %}
+        {%- if 'include' in value.keys() %}
+{{ nginx_block(value['include'], 'include', operator, delim, (ind + indent_increment)) }}
+        {%- endif %}
+{{ '}'|indent(ind, True) }}
+    {%- elif value is iterable -%}
+        {%- for v in value %}
+{{ nginx_block(v, key, operator, delim, ind) }}
+        {%- endfor -%}
+    {%- else -%}
+        {{ key|indent(ind, True) }}{{ operator }}{{ value }}{{ delim }}
+    {%- endif -%}
+    {%- else -%}
+    {%- endif -%}
+{%- endmacro -%}

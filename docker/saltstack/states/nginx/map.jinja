@@ -1,0 +1,149 @@
+{% macro sls_block(dict) %}
+    {% for key, value in dict.items() %}
+    - {{ key }}: {{ value|json() }}
+    {% endfor %}
+{% endmacro %}
+
+{% set nginx = salt['grains.filter_by']({
+    'Debian': {
+        'package': 'nginx',
+        'passenger_package': 'passenger',
+        'service': 'nginx',
+        'webuser': 'www-data',
+        'conf_file': '/etc/nginx/nginx.conf',
+        'server_available': '/etc/nginx/conf.d',
+        'server_enabled': '/etc/nginx/conf.d',
+        'server_use_symlink': False,
+        'pid_file': '/run/nginx.pid',
+    },
+    'CentOS': {
+        'package': 'nginx',
+        'passenger_package': 'passenger',
+        'service': 'nginx',
+        'webuser': 'www-data',
+        'conf_file': '/etc/nginx/nginx.conf',
+        'server_available': '/etc/nginx/conf.d',
+        'server_enabled': '/etc/nginx/conf.d',
+        'server_use_symlink': False,
+        'pid_file': '/run/nginx.pid',
+        'rh_os_releasever': '$releasever',
+        'gpg_check': False,
+        'gpg_key': 'http://nginx.org/keys/nginx_signing.key',
+    },
+    'RedHat': {
+        'package': 'nginx',
+        'passenger_package': 'passenger',
+        'service': 'nginx',
+        'webuser': 'www',
+        'conf_file': '/etc/nginx/nginx.conf',
+        'server_available': '/etc/nginx/conf.d',
+        'server_enabled': '/etc/nginx/conf.d',
+        'server_use_symlink': False,
+        'pid_file': '/run/nginx.pid',
+        'rh_os_releasever': '$releasever',
+        'gpg_check': False,
+        'gpg_key': 'http://nginx.org/keys/nginx_signing.key',
+        'passenger': {
+          'passenger_root': '/usr/share/ruby/vendor_ruby/phusion_passenger/locations.ini',
+          'passenger_instance_registry_dir': ' /var/run/passenger-instreg',
+          'passenger_ruby': '/usr/bin/ruby',
+        },
+    },
+    'default': {
+        'install_from_source': False,
+        'install_from_ppa': False,
+        'install_from_repo': True,
+        'install_from_phusionpassenger': False,
+        'ppa_version': 'stable',
+        'source_version': '1.14.0',
+        'source_hash': '8ed647c3dd65bc4ced03b0e0f6bf9e633eff6b01bac772bcf97077d58bc2be4d',
+        'service_enable': True,
+        'server': {
+            'opts': {},
+            'config': {
+                'worker_processes': 4,
+                'events': {
+                    'worker_connections': 768,
+                },
+                'http': {
+                    'sendfile': 'on',
+                    'tcp_nopush': 'on',
+                    'tcp_nodelay': 'on',
+                    'keepalive_timeout': '65',
+                    'types_hash_max_size': '2048',
+                    'default_type': 'application/octet-stream',
+                    'access_log': '/var/log/nginx/access.log',
+                    'error_log': '/var/log/nginx/error.log',
+                    'gzip': 'off',
+                    'gzip_disable': '"msie6"',
+                    'include': [
+                        '/etc/nginx/mime.types',
+                        '/etc/nginx/conf.d/*.conf',
+                    ],
+                },
+            },
+        },
+        'vhosts': {
+            'disabled_postfix': '.disabled',
+            'symlink_opts': {},
+            'rename_opts': {},
+            'managed_opts': {},
+            'dir_opts': {
+                'makedirs': True,
+            },
+            'managed': {},
+        },
+        'passenger': {
+          'passenger_root': '/usr/lib/ruby/vendor_ruby/phusion_passenger/locations.ini',
+          'passenger_ruby': '/usr/bin/ruby',
+        },  
+    }
+
+}, merge=salt['pillar.get']('nginx:lookup'), base = 'default') %}
+
+{% if 'user' not in nginx.server.config %}
+{% do nginx.server.config.update({
+    'user': nginx.webuser,
+})%}
+{% endif %}
+
+{% if 'pid' not in nginx.server.config and 'pid_file' in nginx %}
+{% do nginx.server.config.update({
+    'pid': nginx.pid_file,
+})%}
+{% endif %}
+
+{% set service_function = {True:'running', False:'dead'}.get(nginx.service_enable) %}
+
+# Simple path concatenation.
+# Needs work to make this function on windows.
+{% macro path_join(file, root) -%}
+  {{ root ~ '/' ~ file }}
+{%- endmacro %}
+
+# Retrieves the disabled name of a particular server
+{% macro disabled_name(server) -%}
+  {%- if nginx.server_use_symlink -%}
+    {{ nginx.vhosts.managed.get(server).get('disabled_name', server) }}
+  {%- else -%}
+    {{ nginx.vhosts.managed.get(server).get('disabled_name', server ~ nginx.vhosts.disabled_postfix) }}
+  {%- endif -%}
+{%- endmacro %}
+  
+# Gets the path of a particular server
+{% macro file_path(server, state, type) -%}
+{%- if type == 'customs' -%}
+    {{ path_join(server, nginx.get(type).managed.get(server).get('dir')) }}
+  {%- elif state == True -%}
+    {{ path_join(server, nginx.get(type).managed.get(server).get('enabled_dir', nginx.server_enabled)) }}
+  {%- elif state == False -%}
+    {{ path_join(disabled_name(server), nginx.get(type).managed.get(server).get('available_dir', nginx.server_available)) }}
+  {%- else -%}
+    {{ path_join(server, nginx.get(type).managed.get(server).get('available_dir', nginx.server_available)) }}
+  {%- endif -%}
+{%- endmacro %}
+
+# Gets the current canonical name of a server conf
+{% macro file_curpath(server, type) -%}
+  {{ file_path(server, nginx.get(type).managed.get(server).get('available'), type) }}
+{%- endmacro %}

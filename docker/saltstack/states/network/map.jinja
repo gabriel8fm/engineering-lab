@@ -1,0 +1,35 @@
+{% set network = salt['grains.filter_by']({
+  'default': {
+    'dns': salt['pillar.get']('network:lookup:dns')
+  },
+  'RedHat': {},
+  'Debian': {
+    'interfaces': {
+      'ens192': salt['pillar.get']('network:lookup:interfaces:external'),
+      'ens224': salt['pillar.get']('network:lookup:interfaces:internal'),
+      'ens256': salt['pillar.get']('network:lookup:interfaces:backup'), 
+    } 
+  },
+  
+  }, merge=salt['grains.filter_by']({
+    '6': {
+      'interfaces': {
+        'eth0': salt['pillar.get']('network:lookup:interfaces:external'),
+        'eth1': salt['pillar.get']('network:lookup:interfaces:internal'),          
+        'eth2': salt['pillar.get']('network:lookup:interfaces:backup'), 
+      }
+    },
+    '7': {
+      'interfaces': {
+        'ens160': salt['pillar.get']('network:lookup:interfaces:external'),
+        'ens192': salt['pillar.get']('network:lookup:interfaces:internal'),
+        'ens224': salt['pillar.get']('network:lookup:interfaces:backup'), 
+      } 
+    },
+  }, grain="osmajorrelease"), base = 'default') %}
+
+{% if grains['os'] in ('Ubuntu', 'Debian') and salt['pkg.version']('resolvconf')%}
+  {% set is_resolvconf_enabled = True %}
+{% else %}
+  {% set is_resolvconf_enabled = False %}
+{% endif %}

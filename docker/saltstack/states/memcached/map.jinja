@@ -1,0 +1,26 @@
+{% set memcached = salt['grains.filter_by']({
+    'default':{
+        'server': 'memcached',
+        'service': 'memcached',
+        'daemonize': True,
+        'verbose_level': 0,
+        'log_file': '/var/log/memcached.log',
+        'memory_cap': 1024,
+        'port': 11211,
+        'user':'memcache',
+        'listen_address': '0.0.0.0',
+        'max_connections': 1024,
+        'lock_paged_memory': False,
+        'error_on_mem_full': False,
+        'max_core_file_limit': False,
+        'slab_size_limit': '1m',
+    },
+    'Debian':{
+        'config_file': '/etc/memcached.conf',
+        'config_template': 'salt://{{ slspath }}/files/memcached.conf.jinja'
+    },
+    'RedHat': {
+        'config_file': '/etc/sysconfig/memcached',
+        'config_template': 'salt://{{ slspath }}/files/memcached.jinja'
+    },
+}, merge=salt['pillar.get']('memcached:lookup'), base='default') %}

@@ -1,0 +1,50 @@
+{% from "rabbitmq/package-map.jinja" import rabbitmq with context %}
+{% from "rabbitmq/package-map.jinja" import pkgs with context %}
+
+{% set module_list = salt['sys.list_modules']() %}
+{% if 'rabbitmqadmin' in module_list %}
+include:
+  - .config_bindings
+  - .config_queue
+  - .config_exchange
+{% endif %}
+
+include:
+  - .erlang
+
+rabbitmq-repo:
+  pkgrepo.managed:
+    - name: {{ rabbitmq.repo }}
+    - file: {{ rabbitmq.repofile }}
+    - gpgcheck: 1
+    - key_url: {{ rabbitmq.repokey }}
+
+rabbitmq-server:
+  pkg.installed:
+    - name: {{ pkgs['rabbitmq-server'] }}
+    {%- if 'version' in salt['pillar.get']('rabbitmq', {}) %}
+    - version: {{ salt['pillar.get']('rabbitmq:version') }}
+    {%- endif %}
+  service:
+    - {{ "running" if salt['pillar.get']('rabbitmq:running', True) else "dead" }}
+    - enable: {{ salt['pillar.get']('rabbitmq:enabled', True) }}
+    - watch:
+      - pkg: rabbitmq-server
+
+rabbitmq_binary_tool_env:
+  file.symlink:
+    - makedirs: True
+    - name: /usr/local/bin/rabbitmq-env
+    - target: /usr/lib/rabbitmq/bin/rabbitmq-env
+    - require:
+      - pkg: rabbitmq-server
+
+rabbitmq_binary_tool_plugins:
+  file.symlink:
+    - makedirs: True
+    - name: /usr/local/bin/rabbitmq-plugins
+    - target: /usr/lib/rabbitmq/bin/rabbitmq-plugins
+    - require:
+      - pkg: rabbitmq-server
+      - file: rabbitmq_binary_tool_env
+

@@ -1,0 +1,3 @@
+newrelic:
+  lookup:
+    license: XXXXXXX

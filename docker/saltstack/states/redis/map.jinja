@@ -1,0 +1,26 @@
+{% set redis = salt['grains.filter_by']({
+    'default':{
+        'config_template': 'salt://redis/files/redis.conf.jinja',
+        'bind': '127.0.0.1',
+        'master': True,
+        'port': '6379',
+        'user': 'redis',
+        'group': 'redis',
+        'mode': '640',
+        'template': 'jinja'
+    },
+    'Debian':{
+        'config_file': '/etc/redis/redis.conf',
+        'logfile': '/var/log/redis/redis-server.log',
+        'pkg': 'redis-server',
+        'service': 'redis-server'
+    },
+    'RedHat': {
+        'config_file': '/etc/redis.conf',
+        'logfile': '/var/log/redis/redis.log',
+        'pkg': 'redis',
+        'repo': 'remi',
+        'remi_version': 'http://rpms.famillecollet.com/enterprise/remi-release-' + grains['osmajorrelease']|string + '.rpm',
+        'service': 'redis'
+    },
+}, merge=salt['pillar.get']('redis:lookup'), base='default') %}

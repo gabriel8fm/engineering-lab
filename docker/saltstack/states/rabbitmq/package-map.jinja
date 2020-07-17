@@ -1,0 +1,29 @@
+{% set package_table = {
+    'Debian': {'rabbitmq-server': 'rabbitmq-server'},
+    'Ubuntu': {'rabbitmq-server': 'rabbitmq-server'},
+    'CentOS': {'rabbitmq-server': 'rabbitmq-server'},
+    'RedHat': {'rabbitmq-server': 'rabbitmq-server'},
+} %}
+
+{% if 'package_table' in pillar %}
+    {% set pkgs = pillar['package_table'] %}
+{% elif grains['os'] in package_table %}
+    {% set pkgs = package_table[grains['os']] %}
+{% endif %}
+
+{% set erlang = salt['grains.filter_by']({
+    'Debian':{
+        'pkg': 'erlang',
+        'repo': 'deb https://packages.erlang-solutions.com/ubuntu ' + grains['oscodename']|string + ' contrib',
+        'repofile': '/etc/apt/sources.list.d/erlang_solutions.list',
+        'repokey': 'https://packages.erlang-solutions.com/ubuntu/erlang_solutions.asc'
+    },
+}, merge=salt['pillar.get']('erlang:lookup'), base='default') %}
+
+{% set rabbitmq = salt['grains.filter_by']({
+    'Debian':{
+        'repo': 'deb https://dl.bintray.com/rabbitmq/debian ' + grains['oscodename']|string + ' main',
+        'repofile': '/etc/apt/sources.list.d/bintray.rabbitmq.list',
+        'repokey': 'https://dl.bintray.com/rabbitmq/Keys/rabbitmq-release-signing-key.asc'
+    },
+  }, merge=salt['pillar.get']('rabbitmq:lookup'), base='Debian') %}

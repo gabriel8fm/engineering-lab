@@ -1,0 +1,4 @@
+git:
+  git: git
+  install_from_source: False
+  install_pkgrepo: False

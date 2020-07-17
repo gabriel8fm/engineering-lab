@@ -1,0 +1,16 @@
+{% set ruby = salt['grains.filter_by']({
+    'Debian': {
+        'package': 'ruby2.2',
+        'package_dev': 'ruby2.2-dev',
+        'package_bundler': 'bundler',
+        'install_from_source': False,
+        'package_passenger': 'passenger'
+    },
+    'RedHat': {
+        'package': 'ruby',
+        'package_dev': 'ruby-devel',
+        'package_bundler': 'bundler',
+        'install_from_source': False,
+        'package_passenger': 'mod_passenger'
+    },
+}, merge=salt['pillar.get']('ruby')) %}

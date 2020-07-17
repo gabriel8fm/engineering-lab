@@ -1,0 +1,61 @@
+{%- if salt['pkg.list_pkgs']().get('php7.0-fpm', False) %}
+  {% set php_version = 'php7-fpm' %}
+{%- elif salt['pkg.list_pkgs']().get('php-fpm', False) %}
+  {% set php_version = 'php5-fpm' %}
+{%- else %}
+  {% set php_version = 'php5-httpd' %}
+{%- endif %}
+
+{% set php = {
+  'php7-fpm': {
+    'config_dir': '/etc/php/7.0/mods-available/newrelic.ini',
+    'service': 'php7.0-fpm'
+  },
+  'php5-fpm': {
+    'config_dir': '/etc/php.d/newrelic.ini',
+    'service': 'php-fpm'
+  },
+  'php5-httpd': {
+    'config_dir': '/etc/php.d/newrelic.ini',
+    'service': 'httpd'
+  }
+}.get(php_version, False) %}
+
+
+{% set newrelic = salt['grains.filter_by']({
+  'default': {
+    'license': salt['pillar.get']('newrelic:lookup:license'),
+    'explain_enable': salt['pillar.get']('newrelic:lookup:explain_enable', false),
+    'name': salt['pillar.get']('app:name'),
+    'dir': salt['pillar.get']('app:dir'),
+    'browser_monitoring': salt['pillar.get']('newrelic:browser_monitoring', true),
+    'mysql': {
+      'user': 'newrelic',
+      'host1': '127.0.0.1' ,
+      'host2': 'localhost' ,
+      'password_hash': '*B8B274C6AF8165B631B4B517BD0ED2694909F464',
+      'grant': 'process,replication client',
+      'database': '\'*.*\''
+    },
+    'custom_params': salt['pillar.get']('newrelic:custom_params')
+  },
+  'RedHat': {
+    'npi_url': 'https://download.newrelic.com/npi/release/install-npi-linux-redhat-x64.sh'
+  },
+  'Debian': {
+    'npi_url': 'https://download.newrelic.com/npi/release/install-npi-linux-debian-x64.sh'
+  }
+
+}, base='default', merge = php)
+%}
+
+{# Macro to salt config file template #}
+{% set indent_increment = 2 %}
+
+{%- macro newrelic_block(value, key=None, operator=': ', delim='', ind=0) -%}
+    {%- if value != None -%}
+    {%- if value is number or value is string -%}
+        {{ key|indent(ind, True) }}{{ operator }}{{ value }}{{ delim }}
+    {%- endif -%}
+    {%- endif -%}
+{%- endmacro -%}  

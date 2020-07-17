@@ -1,0 +1,13 @@
+{% set yarn = salt['grains.filter_by']({
+    'default':{
+        'pkg': 'yarn',
+    },
+    'Debian':{
+        'pkg': 'yarn',
+        'reponame': 'deb https://dl.yarnpkg.com/debian/ stable main',
+        'gpgkey': 'https://dl.yarnpkg.com/debian/pubkey.gpg'
+    },
+    'RedHat': {
+        'pkg': 'yarn',
+    },
+}, merge=salt['pillar.get']('yarn:lookup'), base='default') %}

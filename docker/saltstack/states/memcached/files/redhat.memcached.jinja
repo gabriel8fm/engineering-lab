@@ -1,0 +1,29 @@
+{%- from "memcached/map.jinja" import memcached with context -%}
+
+PORT="{{ memcached.port }}"
+USER="{{ memcached.user }}"
+MAXCONN="{{ memcached.max_connections }}"
+CACHESIZE="{{ memcached.memory_cap }}"
+OPTIONS="-l {{ memcached.listen_address }}"
+
+{% if memcached.lock_paged_memory == True -%}
+OPTIONS="$OPTIONS -k"
+{% endif -%}
+
+{% if memcached.error_on_mem_full == True -%}
+OPTIONS="$OPTIONS -M"
+{% endif -%}
+
+{% if memcached.max_core_file_limit == True -%}
+OPTIONS="$OPTIONS -r"
+{% endif -%}
+
+{% if memcached.slab_size_limit != '1m' -%}
+OPTIONS="$OPTIONS -I {{ memcached.slab_size_limit }}"
+{% endif -%}
+
+{% if memcached.verbose_level == '1' -%}
+OPTIONS="$OPTIONS -v >> {{ memcached.log_file }} 2>&1"
+{% elif memcached.verbose_level == '2' %}
+OPTIONS="$OPTIONS -vv >> {{ memcached.log_file }} 2>&1"
+{% endif -%}

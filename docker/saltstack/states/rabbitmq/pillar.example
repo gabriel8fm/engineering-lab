@@ -1,0 +1,37 @@
+rabbitmq:
+  version: "3.5.3-1"
+  enabled: True
+  running: True
+  plugin:
+    rabbitmq_management:
+      - enabled
+  policy:
+    rabbitmq_policy:
+      - name: HA
+      - pattern: '.*'
+      - definition: '{"ha-mode": "all"}'
+  vhost:
+    vh_name: '/virtual/host'
+  user:
+    user1:
+      - password: password
+      - force: True
+      - tags: monitoring, user
+      - perms:
+        - '/':
+          - '.*'
+          - '.*'
+          - '.*'
+      - runas: root
+    user2:
+      - password: password
+      - force: True
+      - tags: monitoring, user
+      - perms:
+        - '/':
+          - '.*'
+          - '.*'
+          - '.*'
+      - runas: root
+{#- vim:ft=sls
+-#}

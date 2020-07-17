@@ -1,0 +1,15 @@
+# -*- coding: utf-8 -*-
+# vim: ft=yaml
+kibana:
+  pkg: kibana # This is not used for source installations, only binary distributions
+  configfile: '/opt/kibana/config/kibana.yml' # This is not used for the source install
+  source: false # Install from source
+  repoVersion: "4.6" # Elastic repo version
+  sourceVersion: "4.1.6" # We need some version to not crash if nobody sets this
+  sources:
+    installPath: '/opt/kibana/' # This is where the package
+    baseURL: "https://download.elastic.co/kibana/kibana/" # in April 2016 this was where elastico had the downloads
+  service:
+    name: kibana # The package installs this as the service name by default, but source doesn't
+  config:
+    elasticsearch.url: "http://localhost:9200"

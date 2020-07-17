@@ -1,0 +1,28 @@
+{% set app_dir_name = salt['pillar.get']('app:dir').split('/')[-1] %}
+{% set app = salt['grains.filter_by']({
+  'default': {
+    'user': 'www-data',
+    'dir': '',
+    'dir_name': app_dir_name
+  }
+}, merge=salt['pillar.get']('app'), base = 'default') %} 
+{% set available_releases = salt['cmd.run_all']('ls -xr /var/www/html/certapp/releases/').stdout.split() %}
+{% set available_releases = salt['cmd.run_all']('ls -xr /var/www/html/certapp/releases/').stdout.split() %}
+{% set deploy = salt['grains.filter_by']({
+  'default': {
+      'time': None|strftime("%Y%m%d%H%M%S"),
+      'shared_dir': app.dir + '/shared/system',
+      'releases_dir': app.dir + '/releases/',
+      'max_releases': 2,
+      'available_releases': available_releases,
+      'current_release': salt['cmd.run_all']('ls -xr '~ app.dir ~ '/releases/' ).stdout.split()[0],
+      'previous_release': available_releases[1] if available_releases|length > 1 else nil,
+      'shared_system_files': [],
+      'shared_system_files_symlink': [],
+      'post_update_commands': [],
+      'post_publish_commands': [],
+      'post_finish_commands': [],
+      'service_to_reload': None
+    }
+}, merge=salt['pillar.get']('deploy'), base = 'default') %} 
+

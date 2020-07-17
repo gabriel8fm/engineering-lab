@@ -1,0 +1,11 @@
+{% set tmpwatch = salt['grains.filter_by']({
+    'default': {
+      'retention': 12
+    },
+    'Debian': {
+        'pkg': 'tmpreaper'
+    },
+    'RedHat': {
+        'pkg': 'tmpwatch'
+    }
+}, merge=salt['pillar.get']('tmpwatch:lookup'), base='default') %}
